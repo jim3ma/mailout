@@ -67,6 +67,7 @@ func (bm message) build() messages {
 		msg := msgs[i]
 		msg.SetHeader("To", addr)
 		bm.setFrom(msg)
+		bm.setToAndCC(msg)
 		bm.renderSubject(msg)
 		bm.bodyEncrypted(msg, addr)
 		i++
@@ -78,6 +79,7 @@ func (bm message) build() messages {
 		msg := msgs[i]
 		bm.setNonPGPRecipients(msg)
 		bm.setFrom(msg)
+		bm.setToAndCC(msg)
 		bm.renderSubject(msg)
 		bm.bodyUnencrypted(msg)
 	}
@@ -121,6 +123,28 @@ func (bm message) setFrom(gm *gomail.Message) {
 		return
 	}
 	gm.SetHeader("From", bm.r.PostFormValue("email"))
+}
+
+func (bm message) setToAndCC(gm *gomail.Message) {
+	if to := strings.TrimSpace(bm.r.PostFormValue("to")); to != "" {
+
+		if addrs, err := splitEmailAddresses(to); err == nil {
+			gm.SetHeader("To", addrs...)
+		} else {
+		}
+	}
+	if cc := strings.TrimSpace(bm.r.PostFormValue("cc")); cc != "" {
+		if addrs, err := splitEmailAddresses(cc); err == nil {
+			gm.SetHeader("Cc", addrs...)
+		} else {
+		}
+	}
+	if bcc := strings.TrimSpace(bm.r.PostFormValue("bcc")); bcc != "" {
+		if addrs, err := splitEmailAddresses(bcc); err == nil {
+			gm.SetHeader("Bcc", addrs...)
+		} else {
+		}
+	}
 }
 
 func (bm message) renderSubject(gm *gomail.Message) {
